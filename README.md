@@ -37,3 +37,32 @@ Se realizó una comprobación manual del flujo principal de la aplicación, veri
 ### Consideraciones
 
 El formulario de pago es una simulación. No se conecta con una pasarela bancaria ni procesa pagos reales.
+
+## 3. Pruebas de API
+
+Las pruebas de API se ejecutan mediante Newman utilizando la colección de Postman y su entorno de pruebas disponibles en el proyecto.
+
+## 4. Pruebas de rendimiento
+
+Se utiliza Apache JMeter para simular usuarios concurrentes y evaluar el comportamiento del endpoint de consulta de asientos.
+
+- **Plan de pruebas:** `performance/prueba_carga.jmx`
+- **Endpoint evaluado:** `GET /api/asientos?peliculaId=peli-001`
+- **Usuarios concurrentes configurados:** 500
+- **Tiempo de ramp-up:** 15 segundos
+- **Iteraciones:** 5
+- **Validación:** respuesta HTTP 200.
+
+Estos valores corresponden a la configuración del plan; no representan resultados de una ejecución real.
+
+## 5. Integración continua (CI/CD)
+
+El workflow `.github/workflows/qa-pipeline.yml` automatiza la preparación del entorno backend, la comprobación de disponibilidad del servicio y la ejecución de las verificaciones de calidad configuradas.
+
+Los resultados y registros de ejecución permiten revisar posibles fallos del pipeline.
+
+## 6. Estrategia de pruebas
+
+El documento `estrategia_pruebas.pdf` describe el alcance, los objetivos, los criterios de aceptación y la estrategia de pruebas funcionales, de seguridad y de rendimiento.
+
+Los resultados de las pruebas deben registrarse después de ejecutarlas; no se deben considerar aprobadas únicamente por estar configuradas.
