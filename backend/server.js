@@ -3,6 +3,7 @@ const express = require('express');
 const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
 const morgan = require('morgan');
+const cors = require('cors');
 
 const PORT = Number.parseInt(process.env.PORT || '3000', 10);
 const JWT_ISSUER = 'cineflex-api';
@@ -111,6 +112,17 @@ function requireAuthentication(req, res, next) {
 const app = express();
 
 app.disable('x-powered-by');
+app.use(cors({
+  origin: [
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    'http://localhost:5501',
+    'http://127.0.0.1:5501'
+  ],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(helmet());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10kb' }));
