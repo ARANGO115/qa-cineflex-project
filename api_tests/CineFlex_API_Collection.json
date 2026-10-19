@@ -1,0 +1,154 @@
+{
+  "info": {
+    "_postman_id": "cineflex-api-collection",
+    "name": "CineFlex API",
+    "description": "Pruebas funcionales y negativas del contrato REST de CineFlex.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "invalidMovieId", "value": "peli-no-existe" }],
+  "item": [
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "API-01 Login exitoso",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"email\":\"demo@cineflex.com\",\"password\":\"CineFlex2026!\"}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/login"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+            "var data = pm.response.json();",
+            "pm.test('Token no vacío', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+            "pm.test('Usuario y tipo de token', function () { pm.expect(data.usuario).to.be.an('object'); pm.expect(data.tokenType).to.eql('Bearer'); });",
+            "pm.environment.set('token', data.token);"
+          ] } }]
+        },
+        {
+          "name": "API-02 Login con credenciales incorrectas",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"email\":\"demo@cineflex.com\",\"password\":\"incorrecta\"}" }, "url": "{{baseUrl}}/api/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código INVALID_CREDENTIALS', function () { pm.expect(data.error.code).to.eql('INVALID_CREDENTIALS'); });"
+          ] } }]
+        },
+        {
+          "name": "API-03 Login con campos ausentes",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"email\":\"\"}" }, "url": "{{baseUrl}}/api/login" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código VALIDATION_ERROR', function () { pm.expect(data.error.code).to.eql('VALIDATION_ERROR'); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Cartelera y asientos",
+      "item": [
+        {
+          "name": "API-04 Consulta de cartelera",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/peliculas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+            "var data = pm.response.json();",
+            "pm.test('peliculas es arreglo no vacío', function () { pm.expect(data.peliculas).to.be.an('array').and.not.empty; });",
+            "pm.test('Campos esenciales', function () { pm.expect(data.peliculas[0]).to.have.property('id'); pm.expect(data.peliculas[0]).to.have.property('titulo'); pm.expect(data.peliculas[0]).to.have.property('precio'); });",
+            "pm.test('SLA menor a 300 ms', function () { pm.expect(pm.response.responseTime).to.be.below(300); });"
+          ] } }]
+        },
+        {
+          "name": "API-05 Consulta de asientos",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/asientos?peliculaId={{peliculaId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+            "var data = pm.response.json();",
+            "pm.test('Asientos es arreglo', function () { pm.expect(data.asientos).to.be.an('array').and.not.empty; });",
+            "pm.test('IDs únicos y disponibilidad booleana', function () { var ids = data.asientos.map(function (s) { return s.id; }); pm.expect(new Set(ids).size).to.eql(ids.length); data.asientos.forEach(function (s) { pm.expect(s.disponible).to.be.a('boolean'); }); });",
+            "var disponible = data.asientos.find(function (s) { return s.disponible; }); pm.expect(disponible).to.exist; pm.environment.set('asientoId', disponible.id);"
+          ] } }]
+        },
+        {
+          "name": "API-06 Película inexistente",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/asientos?peliculaId={{invalidMovieId}}" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código MOVIE_NOT_FOUND', function () { pm.expect(data.error.code).to.eql('MOVIE_NOT_FOUND'); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Reservas",
+      "item": [
+        {
+          "name": "API-07 Reserva sin token",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"peliculaId\":\"{{peliculaId}}\",\"asientos\":[\"A1\"]}" }, "url": "{{baseUrl}}/api/reservas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código UNAUTHORIZED', function () { pm.expect(data.error.code).to.eql('UNAUTHORIZED'); });"
+          ] } }]
+        },
+        {
+          "name": "API-08 Reserva válida",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "raw", "raw": "{\"peliculaId\":\"{{peliculaId}}\",\"asientos\":[\"{{asientoId}}\"]}" }, "url": "{{baseUrl}}/api/reservas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+            "var data = pm.response.json();",
+            "pm.test('Reserva con identificador', function () { pm.expect(data.reserva).to.be.an('object'); pm.expect(data.reserva.id).to.be.a('string').and.not.empty; });",
+            "pm.test('Película y asiento corresponden', function () { pm.expect(data.reserva.peliculaId).to.eql(pm.environment.get('peliculaId')); pm.expect(data.reserva.asientos).to.eql([pm.environment.get('asientoId')]); });"
+          ] } }]
+        },
+        {
+          "name": "API-09 Reserva con información inválida",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "raw", "raw": "{\"peliculaId\":\"{{peliculaId}}\",\"asientos\":[]}" }, "url": "{{baseUrl}}/api/reservas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código VALIDATION_ERROR', function () { pm.expect(data.error.code).to.eql('VALIDATION_ERROR'); });"
+          ] } }]
+        },
+        {
+          "name": "API-10 Reserva con asientos duplicados",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "raw", "raw": "{\"peliculaId\":\"{{peliculaId}}\",\"asientos\":[\"B1\",\"B1\"]}" }, "url": "{{baseUrl}}/api/reservas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código DUPLICATE_SEATS', function () { pm.expect(data.error.code).to.eql('DUPLICATE_SEATS'); });"
+          ] } }]
+        },
+        {
+          "name": "API-11 Reserva con asiento inexistente",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "raw", "raw": "{\"peliculaId\":\"{{peliculaId}}\",\"asientos\":[\"Z99\"]}" }, "url": "{{baseUrl}}/api/reservas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código INVALID_SEAT', function () { pm.expect(data.error.code).to.eql('INVALID_SEAT'); });"
+          ] } }]
+        },
+        {
+          "name": "API-12 Reserva con asiento previamente reservado",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "body": { "mode": "raw", "raw": "{\"peliculaId\":\"{{peliculaId}}\",\"asientos\":[\"{{asientoId}}\"]}" }, "url": "{{baseUrl}}/api/reservas" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('HTTP 409', function () { pm.response.to.have.status(409); });",
+            "var data = pm.response.json();",
+            "pm.test('Error estructurado', function () { pm.expect(data.error).to.be.an('object'); });",
+            "pm.test('Código SEAT_UNAVAILABLE', function () { pm.expect(data.error.code).to.eql('SEAT_UNAVAILABLE'); });"
+          ] } }]
+        }
+      ]
+    }
+  ]
+}
