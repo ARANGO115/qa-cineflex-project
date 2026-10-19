@@ -11,7 +11,7 @@ npm start
 
 El servidor escucha en el puerto `3000` por defecto. Se puede cambiar con `PORT`.
 
-Configura `JWT_SECRET` con una clave privada de al menos 32 caracteres antes de iniciar un despliegue persistente. En desarrollo se genera una clave aleatoria temporal y los tokens dejan de ser válidos al reiniciar el servidor. El servidor no inicia en `NODE_ENV=production` sin `JWT_SECRET`.
+Configura `JWT_SECRET` con una clave privada de al menos 32 bytes antes de iniciar un despliegue persistente. El servidor rechaza secretos más cortos y no inicia en `NODE_ENV=production` sin `JWT_SECRET`. En desarrollo, si no se configura, se genera una clave aleatoria temporal y los tokens dejan de ser válidos al reiniciar el servidor.
 
 ## Autenticación simulada
 

@@ -36,12 +36,32 @@ test('API ofrece cartelera, autenticación JWT y reservas protegidas', async () 
   assert.equal(seatsBody.asientos.length, 50);
   assert.equal(seatsBody.asientos[0].disponible, true);
 
+  const missingLoginFieldsResponse = await fetch(`${baseUrl}/api/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'demo@cineflex.com' }),
+  });
+  assert.equal(missingLoginFieldsResponse.status, 400);
+
+  const unknownMovieSeatsResponse = await fetch(`${baseUrl}/api/asientos?peliculaId=desconocida`);
+  assert.equal(unknownMovieSeatsResponse.status, 404);
+
   const unauthorizedResponse = await fetch(`${baseUrl}/api/reservas`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ peliculaId: 'peli-001', asientos: ['A1'] }),
   });
   assert.equal(unauthorizedResponse.status, 401);
+
+  const invalidTokenResponse = await fetch(`${baseUrl}/api/reservas`, {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer token-invalido',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ peliculaId: 'peli-001', asientos: ['A1'] }),
+  });
+  assert.equal(invalidTokenResponse.status, 401);
 
   const invalidLoginResponse = await fetch(`${baseUrl}/api/login`, {
     method: 'POST',
@@ -60,6 +80,39 @@ test('API ofrece cartelera, autenticación JWT y reservas protegidas', async () 
   assert.equal(loginBody.tokenType, 'Bearer');
   assert.equal(loginBody.expiresIn, 3600);
   assert.ok(loginBody.token);
+
+  const invalidSeatsResponse = await fetch(`${baseUrl}/api/reservas`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${loginBody.token}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ peliculaId: 'peli-001', asientos: ['Z99'] }),
+  });
+  assert.equal(invalidSeatsResponse.status, 400);
+
+  const duplicateSeatsResponse = await fetch(`${baseUrl}/api/reservas`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${loginBody.token}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ peliculaId: 'peli-001', asientos: ['A1', 'A1'] }),
+  });
+  assert.equal(duplicateSeatsResponse.status, 400);
+
+  const tooManySeatsResponse = await fetch(`${baseUrl}/api/reservas`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${loginBody.token}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      peliculaId: 'peli-001',
+      asientos: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'],
+    }),
+  });
+  assert.equal(tooManySeatsResponse.status, 400);
 
   const reservationResponse = await fetch(`${baseUrl}/api/reservas`, {
     method: 'POST',

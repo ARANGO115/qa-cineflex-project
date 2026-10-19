@@ -8,12 +8,18 @@ const PORT = Number.parseInt(process.env.PORT || '3000', 10);
 const JWT_ISSUER = 'cineflex-api';
 const JWT_AUDIENCE = 'cineflex-client';
 const JWT_TTL_SECONDS = 60 * 60;
-const jwtSecret = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const configuredJwtSecret = process.env.JWT_SECRET;
 
-if (require.main === module && !process.env.JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET debe configurarse en producción.');
-  }
+if (process.env.NODE_ENV === 'production' && !configuredJwtSecret) {
+  throw new Error('JWT_SECRET debe configurarse en producción.');
+}
+if (configuredJwtSecret && Buffer.byteLength(configuredJwtSecret, 'utf8') < 32) {
+  throw new Error('JWT_SECRET debe tener al menos 32 bytes.');
+}
+
+const jwtSecret = configuredJwtSecret || crypto.randomBytes(32).toString('hex');
+
+if (require.main === module && !configuredJwtSecret) {
   console.warn('JWT_SECRET no está configurado; se usará una clave temporal para este proceso.');
 }
 
