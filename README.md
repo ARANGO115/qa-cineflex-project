@@ -190,3 +190,34 @@ Mocha ejecuta los 15 casos con Selenium y Chrome. La suite comprueba primero que
 ### Consideraciones
 
 El formulario de pago es una simulación. No se conecta con una pasarela bancaria ni procesa pagos reales.
+
+
+## 4. Pruebas de rendimiento
+
+Se utilizó Apache JMeter para evaluar el comportamiento del endpoint de consulta de asientos ante múltiples solicitudes concurrentes.
+
+- **Plan de pruebas:** `performance/prueba_carga.jmx`
+- **Endpoint evaluado:** `GET /api/asientos?peliculaId=peli-001`
+- **Usuarios concurrentes configurados:** 500
+- **Tiempo de ramp-up:** 15 segundos
+- **Iteraciones:** 5
+- **Solicitudes ejecutadas:** 2.500
+- **Tiempo promedio de respuesta:** 2 ms
+- **Tiempo máximo de respuesta:** 98 ms
+- **Porcentaje de errores:** 0 %
+- **Rendimiento registrado:** 169,9 solicitudes por segundo
+- **Archivo de resultados:** `performance/summary.csv`
+
+En la ejecución local realizada, JMeter completó 2.500 solicitudes sin registrar errores. Estos resultados corresponden al entorno local de pruebas y no garantizan el mismo rendimiento en producción.
+
+## 5. Integración continua
+
+El flujo de integración continua está definido en `.github/workflows/qa-pipeline.yml`.
+
+El workflow utiliza GitHub Actions para preparar el entorno de Node.js, iniciar el backend y ejecutar las pruebas de API mediante Newman. Los resultados se pueden consultar en la ejecución del workflow y en los artefactos publicados, cuando estén disponibles.
+
+## 6. Estrategia de pruebas
+
+El documento `estrategia_pruebas.pdf` describe el alcance y la estrategia de calidad del proyecto CineFlex.
+
+Los resultados deben verificarse mediante ejecuciones reales de las pruebas. La existencia de una configuración no implica, por sí sola, que todas las pruebas hayan sido aprobadas.

@@ -1,0 +1,75 @@
+name: CineFlex QA Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - feature/performance-cicd-docs
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    name: Pruebas de API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Generar JWT_SECRET temporal para CI
+        run: |
+          node -e 'process.stdout.write("JWT_SECRET=" + require("node:crypto").randomBytes(32).toString("hex") + "\n")' >> "$GITHUB_ENV"
+
+      - name: Iniciar backend
+        working-directory: backend
+        env:
+          PORT: 3000
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          nohup npm start > ../backend.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/api/peliculas > /dev/null; then
+              echo "Backend iniciado"
+              exit 0
+            fi
+            sleep 2
+          done
+          cat ../backend.log
+          echo "No fue posible iniciar el backend"
+          exit 1
+
+      - name: Verificar archivos de pruebas
+        run: |
+          test -s api_tests/CineFlex_API_Collection.json
+          test -s api_tests/CineFlex_Environment.json
+
+      - name: Ejecutar pruebas con Newman
+        run: |
+          npx --yes newman run api_tests/CineFlex_API_Collection.json \
+            -e api_tests/CineFlex_Environment.json \
+            --reporters cli,junit \
+            --reporter-junit-export newman-results.xml
+
+      - name: Publicar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-pruebas-api
+          path: |
+            newman-results.xml
+            backend.log
+          if-no-files-found: ignore
