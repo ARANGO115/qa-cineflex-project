@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="CineFlex: plataforma de reserva de entradas de cine."
+    >
+
+    <title>CineFlex | Cine y reservas</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header id="main-header">
+        <a href="#" id="logo" aria-label="CineFlex, inicio">
+            CINE<span>FLEX</span>
+        </a>
+
+        <nav id="main-navigation" aria-label="Navegación principal">
+            <button
+                type="button"
+                id="logout-button"
+                hidden
+            >
+                Cerrar sesión
+            </button>
+        </nav>
+    </header>
+
+    <main id="main-content">
+
+        <!-- INICIO DE SESIÓN -->
+        <section id="login-view" aria-labelledby="login-title">
+            <h1 id="login-title">Bienvenido a CineFlex</h1>
+
+            <p>Inicia sesión para descubrir tu próxima película.</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <p
+                    id="login-error"
+                    role="alert"
+                    aria-live="polite"
+                    hidden
+                ></p>
+
+                <button type="submit" id="login-button">
+                    Iniciar sesión
+                </button>
+            </form>
+        </section>
+
+        <!-- CARTELERA -->
+        <section
+            id="cartelera-view"
+            aria-labelledby="cartelera-title"
+            hidden
+        >
+            <h1 id="cartelera-title">Cartelera</h1>
+
+            <p>Descubre las películas disponibles.</p>
+
+            <div id="movie-list">
+                <!-- Las películas se cargarán desde la API. -->
+            </div>
+
+            <p id="movies-error" role="alert" hidden></p>
+        </section>
+
+        <!-- INFORMACIÓN Y SELECCIÓN DE ASIENTOS -->
+        <section
+            id="reserva-view"
+            aria-labelledby="reserva-title"
+            hidden
+        >
+            <h1 id="reserva-title">Reserva tus asientos</h1>
+
+            <div id="selected-movie">
+                <!-- Aquí se mostrará la película seleccionada. -->
+            </div>
+
+            <p id="screen-label">PANTALLA</p>
+
+            <div
+                id="seat-map"
+                aria-label="Mapa de asientos"
+            >
+                <!-- Los asientos se cargarán desde la API. -->
+            </div>
+
+            <p id="seat-legend">
+                <span>Disponibles</span>
+                <span>Seleccionados</span>
+                <span>Ocupados</span>
+            </p>
+
+            <p id="seat-error" role="alert" hidden></p>
+
+            <button
+                type="button"
+                id="continue-to-payment"
+                disabled
+            >
+                Continuar al pago
+            </button>
+        </section>
+
+        <!-- PAGO SIMULADO -->
+        <section
+            id="pago-view"
+            aria-labelledby="payment-title"
+            hidden
+        >
+            <h1 id="payment-title">Pago de tu reserva</h1>
+
+            <div id="booking-summary">
+                <!-- Resumen de película, asientos y precio. -->
+            </div>
+
+            <form id="payment-form">
+                <div class="form-group">
+                    <label for="cardholder">
+                        Nombre del titular
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cardholder"
+                        name="cardholder"
+                        autocomplete="cc-name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="card-number">
+                        Número de tarjeta
+                    </label>
+
+                    <input
+                        type="text"
+                        id="card-number"
+                        name="cardNumber"
+                        inputmode="numeric"
+                        autocomplete="cc-number"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="card-expiry">
+                        Fecha de vencimiento
+                    </label>
+
+                    <input
+                        type="text"
+                        id="card-expiry"
+                        name="cardExpiry"
+                        placeholder="MM/AA"
+                        autocomplete="cc-exp"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="card-cvv">CVV</label>
+
+                    <input
+                        type="password"
+                        id="card-cvv"
+                        name="cardCvv"
+                        inputmode="numeric"
+                        autocomplete="cc-csc"
+                        required
+                    >
+                </div>
+
+                <p id="payment-error" role="alert" hidden></p>
+
+                <button
+                    type="submit"
+                    id="confirm-payment-button"
+                >
+                    Confirmar compra
+                </button>
+            </form>
+        </section>
+
+        <!-- CONFIRMACIÓN Y TICKET -->
+        <section
+            id="ticket-view"
+            aria-labelledby="ticket-title"
+            hidden
+        >
+            <h1 id="ticket-title">¡Reserva confirmada!</h1>
+
+            <p id="ticket-message">
+                Tu compra se ha procesado correctamente.
+            </p>
+
+            <article id="ticket-details">
+                <p>
+                    Número de reserva:
+                    <strong id="ticket-id"></strong>
+                </p>
+
+                <p>
+                    Película:
+                    <strong id="ticket-movie"></strong>
+                </p>
+
+                <p>
+                    Asientos:
+                    <strong id="ticket-seats"></strong>
+                </p>
+            </article>
+
+            <button type="button" id="back-to-cartelera">
+                Volver a la cartelera
+            </button>
+        </section>
+
+    </main>
+
+    <footer id="main-footer">
+        <p>&copy; 2026 CineFlex. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
