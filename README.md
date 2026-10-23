@@ -1,5 +1,139 @@
 # qa-cineflex-project
 
+## Backend y API REST
+
+API REST simulada construida con Node.js y Express. Usa Helmet para cabeceras HTTP seguras, Morgan para registros de solicitudes y JWT HS256 para autenticar la creación de reservas. Películas, asientos y reservas se almacenan en memoria; los datos se reinician al reiniciar el proceso.
+
+## Inicio
+
+**Importante:** ejecuta estos comandos desde la carpeta `backend/`.
+
+```bash
+npm install
+npm start
+```
+
+Y para correr las pruebas, también desde esa misma carpeta:
+
+```bash
+npm test
+```
+
+El servidor escucha en el puerto `3000` por defecto. Se puede cambiar con `PORT`.
+
+Configura `JWT_SECRET` con una clave privada de al menos 32 bytes antes de iniciar un despliegue persistente. El servidor rechaza secretos más cortos y no inicia en `NODE_ENV=production` sin `JWT_SECRET`. En desarrollo, si no se configura, se genera una clave aleatoria temporal y los tokens dejan de ser válidos al reiniciar el servidor.
+
+## Autenticación simulada
+
+Credenciales por defecto:
+
+- Correo: `demo@cineflex.com`
+- Contraseña: `CineFlex2026!`
+
+Se pueden cambiar con las variables `DEMO_EMAIL` y `DEMO_PASSWORD`. El token dura una hora. Envíalo en las rutas protegidas como `Authorization: Bearer <token>`.
+
+## Contrato de la API
+
+Los errores usan la estructura `{ "error": { "code": "...", "message": "..." } }`.
+
+### `POST /api/login`
+
+Solicitud:
+
+```json
+{
+  "email": "demo@cineflex.com",
+  "password": "CineFlex2026!"
+}
+```
+
+Respuesta `200 OK`:
+
+```json
+{
+  "token": "<jwt>",
+  "tokenType": "Bearer",
+  "expiresIn": 3600,
+  "usuario": {
+    "id": "usuario-demo",
+    "email": "demo@cineflex.com"
+  }
+}
+```
+
+Credenciales incorrectas producen `401`; campos vacíos o ausentes producen `400`.
+
+### `GET /api/peliculas`
+
+Respuesta `200 OK`:
+
+```json
+{
+  "peliculas": [
+    {
+      "id": "peli-001",
+      "titulo": "El viaje estelar",
+      "genero": "Ciencia ficción",
+      "duracion": 128,
+      "clasificacion": "PG-13",
+      "sinopsis": "Una misión inesperada lleva a su tripulación más allá de lo conocido.",
+      "precio": 12000
+    }
+  ]
+}
+```
+
+La cartelera incluye tres películas de datos simulados.
+
+### `GET /api/asientos?peliculaId=peli-001`
+
+`peliculaId` es opcional y por defecto usa `peli-001`. Respuesta `200 OK`:
+
+```json
+{
+  "peliculaId": "peli-001",
+  "asientos": [
+    { "id": "A1", "fila": "A", "numero": 1, "disponible": true }
+  ]
+}
+```
+
+Cada película tiene 50 asientos simulados. Una película inexistente produce `404`.
+
+### `POST /api/reservas`
+
+Requiere autenticación Bearer. Solicitud:
+
+```json
+{
+  "peliculaId": "peli-001",
+  "asientos": ["A1", "A2"]
+}
+```
+
+Respuesta `201 Created`:
+
+```json
+{
+  "reserva": {
+    "id": "<uuid>",
+    "peliculaId": "peli-001",
+    "asientos": ["A1", "A2"],
+    "usuarioId": "usuario-demo",
+    "fecha": "<fecha ISO 8601>"
+  }
+}
+```
+
+Se permiten de uno a ocho asientos existentes y disponibles por solicitud. Sin token se responde `401`, con datos inválidos `400`, con película inexistente `404` y con asientos ya reservados `409`.
+
+## Pruebas
+
+```powershell
+npm test
+```
+
+
 ## 2. Desarrollo del Frontend
 
 ### Descripción
@@ -38,31 +172,33 @@ Se realizó una comprobación manual del flujo principal de la aplicación, veri
 
 El formulario de pago es una simulación. No se conecta con una pasarela bancaria ni procesa pagos reales.
 
-## 3. Pruebas de API
-
-Las pruebas de API se ejecutan mediante Newman utilizando la colección de Postman y su entorno de pruebas disponibles en el proyecto.
 
 ## 4. Pruebas de rendimiento
 
-Se utiliza Apache JMeter para simular usuarios concurrentes y evaluar el comportamiento del endpoint de consulta de asientos.
+Se utilizó Apache JMeter para evaluar el comportamiento del endpoint de consulta de asientos ante múltiples solicitudes concurrentes.
 
 - **Plan de pruebas:** `performance/prueba_carga.jmx`
 - **Endpoint evaluado:** `GET /api/asientos?peliculaId=peli-001`
 - **Usuarios concurrentes configurados:** 500
 - **Tiempo de ramp-up:** 15 segundos
 - **Iteraciones:** 5
-- **Validación:** respuesta HTTP 200.
+- **Solicitudes ejecutadas:** 2.500
+- **Tiempo promedio de respuesta:** 2 ms
+- **Tiempo máximo de respuesta:** 98 ms
+- **Porcentaje de errores:** 0 %
+- **Rendimiento registrado:** 169,9 solicitudes por segundo
+- **Archivo de resultados:** `performance/summary.csv`
 
-En una ejecución local, JMeter completó 2.500 solicitudes con un 0 % de errores, un tiempo promedio de respuesta de 2 ms y un máximo de 98 ms. El rendimiento registrado fue de aproximadamente 169,9 solicitudes por segundo. Los resultados están guardados en performance/summary.csv.
+En la ejecución local realizada, JMeter completó 2.500 solicitudes sin registrar errores. Estos resultados corresponden al entorno local de pruebas y no garantizan el mismo rendimiento en producción.
 
-## 5. Integración continua (CI/CD)
+## 5. Integración continua
 
-El workflow `.github/workflows/qa-pipeline.yml` automatiza la preparación del entorno backend, la comprobación de disponibilidad del servicio y la ejecución de las verificaciones de calidad configuradas.
+El flujo de integración continua está definido en `.github/workflows/qa-pipeline.yml`.
 
-Los resultados y registros de ejecución permiten revisar posibles fallos del pipeline.
+El workflow utiliza GitHub Actions para preparar el entorno de Node.js, iniciar el backend y ejecutar las pruebas de API mediante Newman. Los resultados se pueden consultar en la ejecución del workflow y en los artefactos publicados, cuando estén disponibles.
 
 ## 6. Estrategia de pruebas
 
-El documento `estrategia_pruebas.pdf` describe el alcance, los objetivos, los criterios de aceptación y la estrategia de pruebas funcionales, de seguridad y de rendimiento.
+El documento `estrategia_pruebas.pdf` describe el alcance y la estrategia de calidad del proyecto CineFlex.
 
-Los resultados de las pruebas deben registrarse después de ejecutarlas; no se deben considerar aprobadas únicamente por estar configuradas.
+Los resultados deben verificarse mediante ejecuciones reales de las pruebas. La existencia de una configuración no implica, por sí sola, que todas las pruebas hayan sido aprobadas.
