@@ -3,10 +3,9 @@ const { By, until } = require('selenium-webdriver');
 class CarteleraPage {
   constructor(driver) {
     this.driver = driver;
-    this.section = By.css('main, [data-section="cartelera"], section');
-    this.title = By.xpath("//*[normalize-space()='Cartelera']");
-    this.movieCards = By.css('[data-movie-id], article, .movie-card, .pelicula-card');
-    this.buyButton = By.css('[data-action="buy"], button');
+    this.section = By.id('cartelera-view');
+    this.title = By.id('cartelera-title');
+    this.movieCards = By.css('#movie-list .movie-card');
   }
 
   async isTitleVisible() {
@@ -19,13 +18,14 @@ class CarteleraPage {
   }
 
   async selectMovie(movieId) {
-    const movie = await this.driver.findElement(By.css(`[data-movie-id="${movieId}"]`));
-    await movie.click();
+    const button = await this.driver.wait(until.elementLocated(
+      By.css(`#movie-list button[data-movie-id="${movieId}"]`)
+    ), 10000);
+    await button.click();
   }
 
-  async clickBuy() {
-    const button = await this.driver.wait(until.elementLocated(this.buyButton));
-    await button.click();
+  async getMovieCount() {
+    return (await this.getMovieCards()).length;
   }
 }
 

@@ -1,0 +1,25 @@
+{
+  "name": "qa-cineflex-project",
+  "version": "1.0.0",
+  "description": "API REST simulada construida con Node.js y Express. Usa Helmet para cabeceras HTTP seguras, Morgan para registros de solicitudes y JWT HS256 para autenticar la creación de reservas. Películas, asientos y reservas se almacenan en memoria; los datos se reinician al reiniciar el proceso.",
+  "main": "index.js",
+  "scripts": {
+    "test:ui": "mocha --timeout 30000 ui_tests/test_suite.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ARANGO115/qa-cineflex-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ARANGO115/qa-cineflex-project/issues"
+  },
+  "homepage": "https://github.com/ARANGO115/qa-cineflex-project#readme",
+  "devDependencies": {
+    "mocha": "^12.0.3",
+    "selenium-webdriver": "^4.51.0"
+  }
+}

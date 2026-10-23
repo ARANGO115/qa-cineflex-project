@@ -168,6 +168,25 @@ Inicio de sesión → Cartelera → Selección de asientos → Pago simulado →
 
 Se realizó una comprobación manual del flujo principal de la aplicación, verificando el inicio de sesión, la consulta de películas, la selección de asientos y la generación de una reserva con su correspondiente tiquete virtual.
 
+### Pruebas automatizadas de interfaz
+
+Las pruebas Selenium utilizan el frontend servido por **Open Live Server** en el puerto `5500` y la API en el puerto `3000`. Desde la raíz del repositorio:
+
+1. Inicia la API en una terminal:
+
+   ```powershell
+   npm --prefix backend start
+   ```
+
+2. Abre `frontend/index.html` con **Open with Live Server** en VS Code. Si Live Server sirve la raíz del repositorio, la URL esperada es `http://127.0.0.1:5500/frontend/index.html`.
+3. En otra terminal, ejecuta la suite:
+
+   ```powershell
+   npm run test:ui
+   ```
+
+Mocha ejecuta los 15 casos con Selenium y Chrome. La suite comprueba primero que Live Server y la API estén disponibles y muestra cuál falta iniciar. Se puede cambiar la URL del frontend con `UI_BASE_URL`, la de la API con `UI_API_URL` y el navegador con `SELENIUM_BROWSER`. Las credenciales usan por defecto `demo@cineflex.com` y `CineFlex2026!`; se pueden configurar mediante `DEMO_EMAIL` y `DEMO_PASSWORD`.
+
 ### Consideraciones
 
 El formulario de pago es una simulación. No se conecta con una pasarela bancaria ni procesa pagos reales.
