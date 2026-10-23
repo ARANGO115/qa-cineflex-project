@@ -1,0 +1,12 @@
+{
+  "id": "cineflex-local-environment",
+  "name": "CineFlex - Local",
+  "values": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "default", "enabled": true },
+    { "key": "token", "value": "", "type": "default", "enabled": true },
+    { "key": "peliculaId", "value": "peli-001", "type": "default", "enabled": true },
+    { "key": "asientoId", "value": "", "type": "default", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_using": "CineFlex QA"
+}
