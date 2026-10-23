@@ -30,11 +30,15 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Generar JWT_SECRET temporal para CI
+        run: |
+          node -e 'process.stdout.write("JWT_SECRET=" + require("node:crypto").randomBytes(32).toString("hex") + "\n")' >> "$GITHUB_ENV"
+
       - name: Iniciar backend
         working-directory: backend
         env:
           PORT: 3000
-          JWT_SECRET: cineflex-test-secret
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           nohup npm start > ../backend.log 2>&1 &
           for i in {1..30}; do

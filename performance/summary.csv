@@ -1,0 +1,3 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+Consultar asientos,2500,2,0,98,6.81,0.000%,169.90621,587.37,25.05,3540.0
+TOTAL,2500,2,0,98,6.81,0.000%,169.90621,587.37,25.05,3540.0

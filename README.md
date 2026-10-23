@@ -1,4 +1,4 @@
-# qa-cineflex-project}
+# qa-cineflex-project
 
 ## 2. Desarrollo del Frontend
 
@@ -53,7 +53,7 @@ Se utiliza Apache JMeter para simular usuarios concurrentes y evaluar el comport
 - **Iteraciones:** 5
 - **Validación:** respuesta HTTP 200.
 
-Estos valores corresponden a la configuración del plan; no representan resultados de una ejecución real.
+En una ejecución local, JMeter completó 2.500 solicitudes con un 0 % de errores, un tiempo promedio de respuesta de 2 ms y un máximo de 98 ms. El rendimiento registrado fue de aproximadamente 169,9 solicitudes por segundo. Los resultados están guardados en performance/summary.csv.
 
 ## 5. Integración continua (CI/CD)
 
